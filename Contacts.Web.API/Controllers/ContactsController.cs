@@ -4,11 +4,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Contacts.Web.API.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Contacts.Web.API.Models.ContextConfiguration;
+using System.Security.Claims;
+using System.Net;
+using Contacts.Web.API.Models.DTO;
 
 namespace Contacts.Web.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class ContactsController : ControllerBase
     {
         private readonly ContactsWebAPIContext _context;
@@ -43,8 +50,14 @@ namespace Contacts.Web.API.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutContact(long id, Contact contact)
+        public async Task<IActionResult> PutContact(long id, UpdatableContactDTO contact)
         {
+            // Authorization
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            IList<Claim> claims = identity.Claims.ToList(); 
+            string currentEmailConnected = claims[0].Value;
+            if (contact.Email.ToLower() != currentEmailConnected.ToLower()) return StatusCode((int)HttpStatusCode.Unauthorized, "Sorry! You can't change data of another contact than yourself...");
+
             if (id != contact.Id)
             {
                 return BadRequest();

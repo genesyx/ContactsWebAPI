@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Contacts.Web.API.Models
+namespace Contacts.Web.API.Models.ContextConfiguration
 {
     public class ContactsWebAPIContext : DbContext
     {
