@@ -34,7 +34,7 @@ namespace Contacts.Web.API.Controllers
 
         // GET: api/Contacts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Contact>> GetContact(long id)
+        public async Task<ActionResult<Contact>> GetContact([FromQuery] long id)
         {
             var contact = await _context.ContactItems.FindAsync(id);
 
@@ -50,11 +50,11 @@ namespace Contacts.Web.API.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutContact(long id, UpdatableContactDTO contact)
+        public async Task<IActionResult> PutContact([FromQuery] long id, [FromBody] UpdatableContactDTO contact)
         {
             // Authorization
             var identity = HttpContext.User.Identity as ClaimsIdentity;
-            IList<Claim> claims = identity.Claims.ToList(); 
+            IList<Claim> claims = identity.Claims.ToList();
             string currentEmailConnected = claims[0].Value;
             if (contact.Email.ToLower() != currentEmailConnected.ToLower()) return StatusCode((int)HttpStatusCode.Unauthorized, "Sorry! You can't change data of another contact than yourself...");
 
@@ -88,7 +88,7 @@ namespace Contacts.Web.API.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Contact>> PostContact(Contact contact)
+        public async Task<ActionResult<Contact>> PostContact([FromBody] Contact contact)
         {
             _context.ContactItems.Add(contact);
             await _context.SaveChangesAsync();
@@ -98,7 +98,7 @@ namespace Contacts.Web.API.Controllers
 
         // DELETE: api/Contacts/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Contact>> DeleteContact(long id)
+        public async Task<ActionResult<Contact>> DeleteContact([FromQuery] long id)
         {
             var contact = await _context.ContactItems.FindAsync(id);
             if (contact == null)

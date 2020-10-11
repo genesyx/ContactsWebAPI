@@ -33,7 +33,7 @@ namespace Contacts.Web.API.Controllers
 
         // GET: api/Skills/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Skill>> GetSkill(long id)
+        public async Task<ActionResult<Skill>> GetSkill([FromQuery] long id)
         {
             var skill = await _context.SkillItems.FindAsync(id);
 
@@ -49,7 +49,7 @@ namespace Contacts.Web.API.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSkill(long id, Skill skill)
+        public async Task<IActionResult> PutSkill([FromQuery] long id, [FromBody] Skill skill)
         {
             Skill skillWithContact = _context.SkillItems.Include(s => s.Contact).Where(s => s.Id == id).SingleOrDefaultAsync().Result;
 
@@ -91,7 +91,7 @@ namespace Contacts.Web.API.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Skill>> PostSkill(Skill skill)
+        public async Task<ActionResult<Skill>> PostSkill([FromBody] Skill skill)
         {
             _context.SkillItems.Add(skill);
             await _context.SaveChangesAsync();
@@ -101,7 +101,7 @@ namespace Contacts.Web.API.Controllers
 
         // DELETE: api/Skills/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Skill>> DeleteSkill(long id)
+        public async Task<ActionResult<Skill>> DeleteSkill([FromQuery] long id)
         {
             var skill = await _context.SkillItems.FindAsync(id);
             if (skill == null)

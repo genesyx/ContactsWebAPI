@@ -36,7 +36,7 @@ namespace Contacts.Web.API.Controllers
         [HttpPost]
         [AllowAnonymous]
         [Route("Login")]
-        public IActionResult Login(CredentialsDTO credentials)
+        public IActionResult Login([FromBody]CredentialsDTO credentials)
         {
             if (credentials == null || string.IsNullOrWhiteSpace(credentials.Login) || string.IsNullOrWhiteSpace(credentials.Password)) return BadRequest();
 
