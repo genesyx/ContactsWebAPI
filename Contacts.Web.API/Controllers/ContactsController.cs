@@ -10,6 +10,7 @@ using Contacts.Web.API.Models.ContextConfiguration;
 using System.Security.Claims;
 using System.Net;
 using Contacts.Web.API.Models.DTO;
+using Contacts.Web.API.Helpers;
 
 namespace Contacts.Web.API.Controllers
 {
@@ -27,41 +28,59 @@ namespace Contacts.Web.API.Controllers
 
         // GET: api/Contacts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Contact>>> GetContactItems()
+        public async Task<ActionResult<IEnumerable<ContactDTO>>> GetContactItems()
         {
-            return await _context.ContactItems.ToListAsync();
+            List<ContactDTO> result = new List<ContactDTO>();
+
+            List<Contact> contactsList = await _context.ContactItems.Include(c => c.SkillsList).ToListAsync();
+            foreach (var contact in contactsList)
+            {
+                result.Add(ContactHelper.ConvertContactToContactDTO(contact));
+            }
+            return result;
         }
 
         // GET: api/Contacts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Contact>> GetContact([FromQuery] long id)
+        public async Task<ActionResult<ContactDTO>> GetContact([FromRoute] long id)
         {
-            var contact = await _context.ContactItems.FindAsync(id);
+            Contact contact = _context.ContactItems.Include(c => c.SkillsList).Where(c => c.Id == id).SingleOrDefaultAsync().Result;
 
             if (contact == null)
             {
                 return NotFound();
             }
 
-            return contact;
+            return ContactHelper.ConvertContactToContactDTO(contact);
         }
 
         // PUT: api/Contacts/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutContact([FromQuery] long id, [FromBody] UpdatableContactDTO contact)
+        public async Task<IActionResult> PutContact([FromRoute] long id, [FromBody] ContactDTO contactDTO)
         {
             // Authorization
-            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            ClaimsIdentity identity = HttpContext.User.Identity as ClaimsIdentity;
             IList<Claim> claims = identity.Claims.ToList();
             string currentEmailConnected = claims[0].Value;
-            if (contact.Email.ToLower() != currentEmailConnected.ToLower()) return StatusCode((int)HttpStatusCode.Unauthorized, "Sorry! You can't change data of another contact than yourself...");
+            if (contactDTO.Email.ToLower() != currentEmailConnected.ToLower()) return StatusCode((int)HttpStatusCode.Unauthorized, "Sorry! You can't change data of another contact than yourself...");
 
-            if (id != contact.Id)
+            if (id != contactDTO.Id)
             {
                 return BadRequest();
             }
+
+            // update fields
+            Contact contact = _context.ContactItems.FindAsync(contactDTO.Id).Result;
+            if (contact == null) return StatusCode((int)HttpStatusCode.NotFound, $"We can't find a contact with id {contactDTO.Id}...");
+
+            contact.FirstName = contactDTO.FirstName;
+            contact.LastName = contactDTO.LastName;
+            contact.FullName = contactDTO.FullName;
+            contact.Address = contactDTO.Address;
+            contact.Email = contactDTO.Email;
+            contact.Mobile = contactDTO.Mobile;
 
             _context.Entry(contact).State = EntityState.Modified;
 
@@ -88,17 +107,18 @@ namespace Contacts.Web.API.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Contact>> PostContact([FromBody] Contact contact)
+        public async Task<ActionResult<Contact>> PostContact([FromBody] ContactDTO contactDTO)
         {
+            Contact contact = ContactHelper.ConvertContactDTOToContact(contactDTO);
             _context.ContactItems.Add(contact);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetContact", new { id = contact.Id }, contact);
+            return CreatedAtAction("GetContact", new { id = contact.Id }, ContactHelper.ConvertContactToContactDTO(contact));
         }
 
         // DELETE: api/Contacts/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Contact>> DeleteContact([FromQuery] long id)
+        public async Task<ActionResult<ContactDTO>> DeleteContact([FromRoute] long id)
         {
             var contact = await _context.ContactItems.FindAsync(id);
             if (contact == null)
@@ -106,10 +126,16 @@ namespace Contacts.Web.API.Controllers
                 return NotFound();
             }
 
+            // Authorization
+            ClaimsIdentity identity = HttpContext.User.Identity as ClaimsIdentity;
+            IList<Claim> claims = identity.Claims.ToList();
+            string currentEmailConnected = claims[0].Value;
+            if (contact.Email.ToLower() != currentEmailConnected.ToLower()) return StatusCode((int)HttpStatusCode.Unauthorized, "Sorry! You can't delete a contact that isn't yours...");
+
             _context.ContactItems.Remove(contact);
             await _context.SaveChangesAsync();
 
-            return contact;
+            return ContactHelper.ConvertContactToContactDTO(contact);
         }
 
         private bool ContactExists(long id)

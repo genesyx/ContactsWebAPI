@@ -34,7 +34,6 @@ namespace Contacts.Web.API.Models
 
         [Required(ErrorMessage = "A password is required")]
         [MaxLength(255)]
-        [JsonIgnore] // pour ne pas renvoyer le password crypter (même s'il sera crypter côté client)
         public string Password { get; set; }
     }
 }

@@ -20,6 +20,7 @@ namespace Contacts.Web.API.Models
         /// <summary>
         /// Contact associé
         /// </summary>
+        [Required(ErrorMessage = "A contact is required to create or update a skill")]
         public Contact Contact { get; set; }
     }
 }

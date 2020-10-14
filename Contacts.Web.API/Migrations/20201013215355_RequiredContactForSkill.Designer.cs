@@ -3,14 +3,16 @@ using Contacts.Web.API.Models.ContextConfiguration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Contacts.Web.API.Migrations
 {
     [DbContext(typeof(ContactsWebAPIContext))]
-    partial class ContactsWebAPIContextModelSnapshot : ModelSnapshot
+    [Migration("20201013215355_RequiredContactForSkill")]
+    partial class RequiredContactForSkill
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
